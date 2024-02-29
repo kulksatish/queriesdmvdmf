@@ -39,3 +39,35 @@ WHERE
     i.object_id IS NULL
 ORDER BY 
     t.name;
+-----------------------------
+DECLARE @TableName NVARCHAR(128);
+DECLARE @ProcedureName NVARCHAR(128);
+
+DECLARE table_cursor CURSOR FOR
+SELECT name
+FROM sys.tables;
+
+OPEN table_cursor;
+
+FETCH NEXT FROM table_cursor INTO @TableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    PRINT 'Stored procedures associated with table: ' + @TableName;
+    PRINT '---------------------------------------------';
+
+    SELECT DISTINCT
+        OBJECT_NAME(object_id) AS ProcedureName
+    FROM
+        sys.sql_modules
+    WHERE
+        definition LIKE '%' + @TableName + '%';
+
+    PRINT '';
+
+    FETCH NEXT FROM table_cursor INTO @TableName;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;
+
