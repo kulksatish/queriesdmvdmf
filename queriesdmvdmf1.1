@@ -41,7 +41,7 @@ ORDER BY
     t.name;
 -----------------------------
 DECLARE @TableName NVARCHAR(128);
-DECLARE @ProcedureName NVARCHAR(128);
+DECLARE @ProcedureName NVARCHAR(MAX) = '';
 
 DECLARE table_cursor CURSOR FOR
 SELECT name
@@ -53,19 +53,16 @@ FETCH NEXT FROM table_cursor INTO @TableName;
 
 WHILE @@FETCH_STATUS = 0
 BEGIN
+    SET @ProcedureName = '';
+
+    SELECT @ProcedureName += OBJECT_NAME(m.object_id) + CHAR(10)
+    FROM sys.sql_modules m
+    INNER JOIN sys.tables t ON m.definition LIKE '%' + t.name + '%'
+    WHERE t.name = @TableName;
+
     PRINT 'Table: ' + @TableName;
     PRINT '---------------------------------------------';
-
-    SELECT DISTINCT
-        OBJECT_NAME(m.object_id) AS ProcedureName
-    FROM
-        sys.sql_modules m
-    INNER JOIN
-        sys.tables t ON m.definition LIKE '%' + t.name + '%'
-    WHERE
-        t.name = @TableName;
-
-    PRINT '';
+    PRINT @ProcedureName;
 
     FETCH NEXT FROM table_cursor INTO @TableName;
 END
