@@ -53,15 +53,17 @@ FETCH NEXT FROM table_cursor INTO @TableName;
 
 WHILE @@FETCH_STATUS = 0
 BEGIN
-    PRINT 'Stored procedures associated with table: ' + @TableName;
+    PRINT 'Table: ' + @TableName;
     PRINT '---------------------------------------------';
 
     SELECT DISTINCT
-        OBJECT_NAME(object_id) AS ProcedureName
+        OBJECT_NAME(m.object_id) AS ProcedureName
     FROM
-        sys.sql_modules
+        sys.sql_modules m
+    INNER JOIN
+        sys.tables t ON m.definition LIKE '%' + t.name + '%'
     WHERE
-        definition LIKE '%' + @TableName + '%';
+        t.name = @TableName;
 
     PRINT '';
 
